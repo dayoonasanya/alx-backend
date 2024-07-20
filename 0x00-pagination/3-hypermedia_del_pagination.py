@@ -4,7 +4,6 @@ Deletion-resilient hypermedia pagination
 """
 
 import csv
-import math
 from typing import List, Dict
 
 
@@ -39,31 +38,29 @@ class Server:
             }
         return self.__indexed_dataset
 
-    def get_hyper_index(self, index: int = None,
-                        page_size: int = 10) -> Dict:
-        """ return all data"""
-
-        if index is None:
-            index = 0
-
-        # validate the index
-        assert isinstance(index, int)
-        assert 0 <= index < len(self.indexed_dataset())
-        assert isinstance(page_size, int) and page_size > 0
-
-        data = []  # collect all indexed data
-        next_index = index + page_size
-
-        for value in range(index, next_index):
-            if self.indexed_dataset().get(value):
-                data.append(self.indexed_dataset()[value])
-            else:
-                value += 1
-                next_index += 1
-
+    def get_hyper_index(self, index: int = None, page_size: int = 10) -> Dict:
+        """
+        Returns a dictionary with key-value pairs
+         (index, next_index, page_size, data)
+        :param index:
+        :param page_size:
+        :return:
+        """
+        assert type(index) == int
+        assert type(page_size) == int
+        csv = self.indexed_dataset()
+        csv_size = len(csv)
+        assert 0 <= index < csv_size
+        data = []
+        _next = index
+        for _ in range(page_size):
+            while not csv.get(_next):
+                _next += 1
+            data.append(csv.get(_next))
+            _next += 1
         return {
-            'index': index,
-            'data': data,
-            'page_size': page_size,
-            'next_index': next_index
+            "index": index,
+            "data": data,
+            "page_size": page_size,
+            "next_index": _next
         }
